@@ -16,3 +16,8 @@ TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
     default="postgresql+asyncpg://sergey:11@localhost:5432/maxburger_test",
 )
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+REFRESH_TOKEN_EXPIRE_MINUTES = int(os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES"))
