@@ -24,10 +24,9 @@ class UserToShow(TunedModel):
     phone: str
     is_staff: bool
     is_admin: bool
-    password: str
 
 
-class UserToLogin(TunedModel):
+class UserPassword(BaseModel):
     password: str
 
 
