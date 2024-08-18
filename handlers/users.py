@@ -21,3 +21,8 @@ async def create_new_user(body: UserToCreate, session: AsyncSession) -> UserToSh
 async def get_user_by_username_for_login(username: str, session: AsyncSession) -> User:
     user_dal = UserDAL(session)
     return await user_dal.get_user_by_username(username)
+
+
+async def change_user_password(username: str, password: str, session: AsyncSession) -> None:
+    user_dal = UserDAL(session)
+    return await user_dal.change_user_password(username, password)

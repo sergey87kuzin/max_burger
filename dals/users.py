@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_models import UserToCreate
@@ -29,7 +29,7 @@ class UserDAL:
         query = (
             select(User)
             .where(and_(
-                User.username == username,
+                func.lower(User.username) == func.lower(username),
                 User.is_active == True
             ))
         )
@@ -40,3 +40,12 @@ class UserDAL:
                 detail="User not found"
             )
         return result.scalars().first()
+
+    async def change_user_password(self, username: str, new_password: str) -> None:
+        query = (
+            update(User)
+            .where(and_(func.lower(User.username) == username, User.is_active == True))
+            .values({"password": Hasher.get_password_hash(new_password)})
+        )
+        await self.db_session.execute(query)
+        await self.db_session.commit()
