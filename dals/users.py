@@ -11,12 +11,15 @@ __all__ = (
     "UserDAL",
 )
 
+from hashing import Hasher
+
 
 class UserDAL:
     def __init__(self, session: AsyncSession):
         self.db_session = session
 
     async def create_user(self, user_data: UserToCreate) -> User:
+        user_data.password = Hasher.get_password_hash(user_data.password)
         new_user = User(**user_data.dict())
         self.db_session.add(new_user)
         await self.db_session.commit()
