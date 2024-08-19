@@ -5,13 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_models import UserToCreate
 from db_models import User
-
+from hashing import Hasher
 
 __all__ = (
     "UserDAL",
 )
-
-from hashing import Hasher
 
 
 class UserDAL:
@@ -19,7 +17,6 @@ class UserDAL:
         self.db_session = session
 
     async def create_user(self, user_data: UserToCreate) -> User:
-        user_data.password = Hasher.get_password_hash(user_data.password)
         new_user = User(**user_data.dict())
         self.db_session.add(new_user)
         await self.db_session.commit()
