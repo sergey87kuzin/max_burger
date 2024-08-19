@@ -1,8 +1,11 @@
+from http import HTTPStatus
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from fastapi import HTTPException
+from pydantic import BaseModel, EmailStr, field_validator
 
 from common_api_model import TunedModel
+from hashing import Hasher
 
 
 class UserToCreate(BaseModel):
@@ -14,6 +17,30 @@ class UserToCreate(BaseModel):
     is_admin: Optional[bool] = False
     is_active: Optional[bool] = True
     password: str
+
+    @field_validator("password")
+    def validate_password(cls, value):
+        password_exception = HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail="Придумайте другой пароль"
+        )
+        if len(value) < 6:
+            raise password_exception
+        if not any(char.isdigit() for char in value):
+            raise password_exception
+        if not any(char.isalpha() for char in value):
+            raise password_exception
+        return Hasher.get_password_hash(value)
+
+
+class UserToUpdate(BaseModel):
+    first_name: str
+    last_name: str
+    username: EmailStr
+    phone: str
+    is_staff: Optional[bool] = False
+    is_admin: Optional[bool] = False
+    is_active: Optional[bool] = True
 
 
 class UserToShow(TunedModel):
