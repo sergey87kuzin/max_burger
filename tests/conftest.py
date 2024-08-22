@@ -33,9 +33,10 @@ def event_loop():
 
 @pytest.fixture(scope="session", autouse=True)
 def a_run_migrations():
-    config = alembic.config.Config("tests/alembic.ini")
-    alembic.command.revision(config, autogenerate=True, message="test running migrations")
-    alembic.command.upgrade(config, "head")
+    # config = alembic.config.Config("tests/alembic.ini")
+    # alembic.command.revision(config, autogenerate=True, message="test running migrations")
+    # alembic.command.upgrade(config, "head")
+    pass
 
 
 @pytest.fixture(scope="session")
@@ -92,14 +93,16 @@ async def asyncpg_pool():
 
 
 @pytest.fixture
-async def get_user_from_database(asyncpg_pool):
-    async def get_user_from_database_by_uuid(user_id: str):
-        async with asyncpg_pool.acquire() as connection:
-            return await connection.fetch(
-                """SELECT * FROM users WHERE user_id = $1;""", user_id
+async def get_user_from_database(async_session_test):
+    async def get_user_from_database_by_username(username: str):
+        async with async_session_test() as session:
+            user_row = await session.execute(
+                text("SELECT * FROM users WHERE username = :un;"), {"un": username}
             )
+            if user := user_row.fetchall()[0]:
+                return user
 
-    return get_user_from_database_by_uuid
+    return get_user_from_database_by_username
 
 
 @pytest.fixture
