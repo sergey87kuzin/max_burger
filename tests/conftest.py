@@ -14,6 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
 
 from database_interaction import get_db
+from db_models import Category
 from main import app
 from settings import TEST_DATABASE_URL
 
@@ -103,6 +104,19 @@ async def get_user_from_database(async_session_test):
                 return user
 
     return get_user_from_database_by_username
+
+
+@pytest.fixture
+async def create_category(async_session_test):
+    async with async_session_test() as session:
+        new_category = Category(
+            name="Test Category",
+            cover="some_cover",
+            is_active=True
+        )
+        session.add(new_category)
+        session.commit()
+        return new_category
 
 
 @pytest.fixture
