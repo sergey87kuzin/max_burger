@@ -89,3 +89,10 @@ async def test_admin_objects(url, model, data_dict, update_data_dict, client, as
 
     for key, value in update_data_dict.items():
         assert getattr(result, key) == value, "Неверное изменение объекта в бд"
+
+    for key, value in data_dict.items():
+        if key == "password":
+            continue
+        if key in update_data_dict:
+            continue
+        assert getattr(result, key) == value, "Изменены лишние поля объекта в бд"
