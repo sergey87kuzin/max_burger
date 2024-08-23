@@ -31,15 +31,26 @@ product_data = {
     # "image": "cover.png",
 }
 
+user_update_data = {
+    "first_name": "Linda",
+    "last_name": "Thompson",
+}
+category_update_data = {
+    "name": "accessories",
+}
+product_update_data = {
+    "name": "super accessories",
+}
+
 
 @pytest.mark.parametrize(
-    "url,model,data_dict", [
-        ("users", User, user_data),
-        ("categories", Category, category_data),
-        ("products", Product, product_data),
+    "url,model,data_dict,update_data_dict", [
+        ("users", User, user_data, user_update_data),
+        ("categories", Category, category_data, category_update_data),
+        ("products", Product, product_data, product_update_data),
     ]
 )
-async def test_admin_objects_creation(url, model, data_dict, client, async_session_test):
+async def test_admin_objects(url, model, data_dict, update_data_dict, client, async_session_test):
 
     if url == "products":
         new_category = Category(
@@ -53,13 +64,35 @@ async def test_admin_objects_creation(url, model, data_dict, client, async_sessi
 
     response = client.post(f"api/admin/{url}/", data=json.dumps(data_dict))
     assert response.status_code == 200
+    object_from_db_id = response.json()["id"]
 
     async with async_session_test() as session:
-        results = await session.execute(select(model).where(model.id == response.json().get("id")))
+        results = await session.execute(select(model).where(model.id == object_from_db_id))
         if results:
             result = results.first()[0]
         else:
             raise AssertionError("Object not found")
     for key, value in data_dict.items():
-        if key != "password":
-            assert getattr(result, key) == value
+        if key == "password":
+            continue
+        assert getattr(result, key) == value, "Неверное сохранение объекта в бд"
+
+    response = client.post(f"api/admin/{url}/{object_from_db_id}/", data=json.dumps(update_data_dict))
+    assert response.status_code == 200
+
+    async with async_session_test() as session:
+        results = await session.execute(select(model).where(model.id == object_from_db_id))
+        if results:
+            result = results.first()[0]
+        else:
+            raise AssertionError("Object not found")
+
+    for key, value in update_data_dict.items():
+        assert getattr(result, key) == value, "Неверное изменение объекта в бд"
+
+    for key, value in data_dict.items():
+        if key == "password":
+            continue
+        if key in update_data_dict:
+            continue
+        assert getattr(result, key) == value, "Изменены лишние поля объекта в бд"

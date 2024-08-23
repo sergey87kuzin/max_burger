@@ -40,10 +40,11 @@ class CommonAdminDAL:
         return new_object
 
     async def update_object(self, object_id: int, data: dict):
+        update_data = {key: value for key, value in data.items() if value is not None}
         query = (
             update(self.model)
             .where(self.model.id == object_id)
-            .values(**data)
+            .values(**update_data)
             .returning(self.model)
         )
         result = await self.db_session.execute(query)

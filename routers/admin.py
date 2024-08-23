@@ -99,7 +99,7 @@ async def admin_get_product(product_id: int, session: AsyncSession = Depends(get
     )
 
 
-@admin_router.post("/products/{product_id}")
+@admin_router.post("/products/{product_id}/")
 async def admin_update_product(
         product_id: int,
         product_data: ProductToUpdate,
@@ -115,7 +115,7 @@ async def admin_update_product(
     )
 
 
-@admin_router.delete("/products/{product_id}")
+@admin_router.delete("/products/{product_id}/")
 async def admin_delete_product(product_id: int, session: AsyncSession = Depends(get_db)):
     return await delete_object_by_id(
         model=Product,
@@ -158,7 +158,7 @@ async def admin_get_category(category_id: int, session: AsyncSession = Depends(g
     )
 
 
-@admin_router.post("/categories/{category_id}")
+@admin_router.post("/categories/{category_id}/")
 async def admin_update_category(
         category_id: int,
         category_data: CategoryToUpdate,
@@ -174,7 +174,7 @@ async def admin_update_category(
     )
 
 
-@admin_router.delete("/categories/{category_id}")
+@admin_router.delete("/categories/{category_id}/")
 async def admin_delete_category(category_id: int, session: AsyncSession = Depends(get_db)):
     return await delete_object_by_id(
         model=Category,

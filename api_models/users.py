@@ -34,13 +34,13 @@ class UserToCreate(BaseModel):
 
 
 class UserToUpdate(BaseModel):
-    first_name: str
-    last_name: str
-    username: EmailStr
-    phone: str
-    is_staff: Optional[bool] = False
-    is_admin: Optional[bool] = False
-    is_active: Optional[bool] = True
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    username: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    is_staff: Optional[bool] = None
+    is_admin: Optional[bool] = None
+    is_active: Optional[bool] = None
 
 
 class UserToShow(TunedModel):
