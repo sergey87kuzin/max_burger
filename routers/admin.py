@@ -33,7 +33,7 @@ async def admin_list_users(session: AsyncSession = Depends(get_db)):
     )
 
 
-@admin_router.get("/users/{user_id}")
+@admin_router.get("/users/{user_id}/")
 async def admin_get_user(user_id: int, session: AsyncSession = Depends(get_db)):
     return await get_object(
         model=User,
@@ -44,7 +44,7 @@ async def admin_get_user(user_id: int, session: AsyncSession = Depends(get_db)):
     )
 
 
-@admin_router.post("/users/{user_id}")
+@admin_router.post("/users/{user_id}/")
 async def admin_update_user(user_id: int, user_data: UserToUpdate, session: AsyncSession = Depends(get_db)):
     return await update_object_by_id(
         model=User,
@@ -56,7 +56,7 @@ async def admin_update_user(user_id: int, user_data: UserToUpdate, session: Asyn
     )
 
 
-@admin_router.delete("/users/{user_id}")
+@admin_router.delete("/users/{user_id}/")
 async def admin_delete_user(user_id: int, session: AsyncSession = Depends(get_db)):
     return await delete_object_by_id(
         model=User,
