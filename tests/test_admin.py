@@ -77,8 +77,8 @@ async def test_admin_objects(url, model, data_dict, update_data_dict, client, as
             continue
         assert getattr(result, key) == value, "Неверное сохранение объекта в бд"
 
-    response = client.post(f"api/admin/{url}/{object_from_db_id}/", data=json.dumps(update_data_dict))
-    assert response.status_code == 200
+    update_response = client.post(f"api/admin/{url}/{object_from_db_id}/", data=json.dumps(update_data_dict))
+    assert update_response.status_code == 200
 
     async with async_session_test() as session:
         results = await session.execute(select(model).where(model.id == object_from_db_id))
@@ -96,3 +96,10 @@ async def test_admin_objects(url, model, data_dict, update_data_dict, client, as
         if key in update_data_dict:
             continue
         assert getattr(result, key) == value, "Изменены лишние поля объекта в бд"
+
+    single_response = client.get(f"api/admin/{url}/{object_from_db_id}/")
+    assert single_response.status_code == 200
+    assert single_response.json() == update_response.json()
+
+    list_response = client.get(f"api/admin/{url}/list/")
+    assert list_response.status_code == 200
