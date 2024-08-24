@@ -17,6 +17,7 @@ class CommonAdminDAL:
 
     async def get_full_objects_list(self):
         rows = await self.db_session.execute(select(self.model))
+        await self.db_session.commit()
         return rows.unique().scalars().all()
 
     async def get_object_by_id(self, object_id: int):
@@ -30,6 +31,7 @@ class CommonAdminDAL:
                 status_code=HTTPStatus.NOT_FOUND,
                 detail="Объект не найден"
             )
+        await self.db_session.commit()
         return result.scalars().first()
 
     async def create_object(self, data: dict):
