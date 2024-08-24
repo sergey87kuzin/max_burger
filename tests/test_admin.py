@@ -1,6 +1,9 @@
+import asyncio
 import json
+from time import sleep
 
 import pytest
+import requests
 from sqlalchemy import select
 
 from db_models import User, Category, Product
@@ -45,9 +48,9 @@ product_update_data = {
 
 @pytest.mark.parametrize(
     "url,model,data_dict,update_data_dict", [
-        ("users", User, user_data, user_update_data),
         ("categories", Category, category_data, category_update_data),
         ("products", Product, product_data, product_update_data),
+        ("users", User, user_data, user_update_data),
     ]
 )
 async def test_admin_objects(url, model, data_dict, update_data_dict, client, async_session_test):
@@ -97,9 +100,9 @@ async def test_admin_objects(url, model, data_dict, update_data_dict, client, as
             continue
         assert getattr(result, key) == value, "Изменены лишние поля объекта в бд"
 
-    single_response = client.get(f"api/admin/{url}/{object_from_db_id}/")
+    single_response = client.get(url=f"api/admin/{url}/{object_from_db_id}/")
     assert single_response.status_code == 200
     assert single_response.json() == update_response.json()
 
-    list_response = client.get(f"api/admin/{url}/list/")
+    list_response = client.get(url=f"api/admin/{url}/list/")
     assert list_response.status_code == 200
