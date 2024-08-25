@@ -1,5 +1,6 @@
 import asyncio
 import json
+from http import HTTPStatus
 from time import sleep
 
 import pytest
@@ -100,9 +101,18 @@ async def test_admin_objects(url, model, data_dict, update_data_dict, client, as
             continue
         assert getattr(result, key) == value, "Изменены лишние поля объекта в бд"
 
+    updated_data = update_response.json()
+
     single_response = client.get(url=f"api/admin/{url}/{object_from_db_id}/")
-    assert single_response.status_code == 200
-    assert single_response.json() == update_response.json()
+    assert single_response.status_code == HTTPStatus.OK, "Неверный статус запроса к деталке объекта"
+    assert single_response.json() == updated_data, "Некорректные данные в возрате деталки или изменения"
 
     list_response = client.get(url=f"api/admin/{url}/list/")
-    assert list_response.status_code == 200
+    assert list_response.status_code == HTTPStatus.OK, "Неверный статус запроса к списку объектов"
+    assert updated_data in list_response.json(), "Объекта нет в списке либо он там отображен некорректно"
+
+    delete_response = client.delete(url=f"api/admin/{url}/{object_from_db_id}/")
+    assert delete_response.status_code == HTTPStatus.NO_CONTENT
+
+    single_response = client.get(url=f"api/admin/{url}/{object_from_db_id}/")
+    assert single_response.status_code == HTTPStatus.NOT_FOUND, "Неверный статус запроса к деталке объекта"
