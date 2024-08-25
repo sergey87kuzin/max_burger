@@ -8,6 +8,8 @@ __all__ = (
     "CommonAdminDAL",
 )
 
+from pagination import PageParams
+
 
 class CommonAdminDAL:
     def __init__(self, model, session: AsyncSession):
@@ -15,9 +17,13 @@ class CommonAdminDAL:
         self.model = model
         self.db_session = session
 
-    async def get_full_objects_list(self):
-        rows = await self.db_session.execute(select(self.model))
-        return rows.unique().scalars().all() or []
+    async def get_full_objects_list(self, page_params: PageParams):
+        rows = await self.db_session.execute(
+            select(self.model)
+            .limit(page_params.size)
+            .offset((page_params.page - 1) * page_params.size)
+        )
+        return rows.scalars().all()
 
     async def get_object_by_id(self, object_id: int):
         query = (

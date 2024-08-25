@@ -7,6 +7,7 @@ from api_models import UserToShow, UserToCreate, UserToUpdate, ProductToShow, Pr
     CategoryToCreate, CategoryToShow, CategoryToUpdate
 from database_interaction import get_db
 from db_models import User, Product, Category
+from pagination import PageParams
 
 admin_router = APIRouter()
 
@@ -24,12 +25,13 @@ async def admin_create_user(user: UserToCreate, session: AsyncSession = Depends(
 
 
 @admin_router.get("/users/list/")
-async def admin_list_users(session: AsyncSession = Depends(get_db)):
+async def admin_list_users(page_params: PageParams = Depends(), session: AsyncSession = Depends(get_db)):
     return await get_objects_list(
         model=User,
         dal=CommonAdminDAL,
         response_model=UserToShow,
-        session=session
+        session=session,
+        page_params=page_params
     )
 
 
@@ -79,12 +81,13 @@ async def admin_create_product(product: ProductToCreate, session: AsyncSession =
 
 
 @admin_router.get("/products/list/")
-async def admin_list_products(session: AsyncSession = Depends(get_db)):
+async def admin_list_products(page_params: PageParams = Depends(), session: AsyncSession = Depends(get_db)):
     return await get_objects_list(
         model=Product,
         dal=CommonAdminDAL,
         response_model=ProductToShow,
-        session=session
+        session=session,
+        page_params=page_params
     )
 
 
@@ -138,12 +141,13 @@ async def admin_create_category(category: CategoryToCreate, session: AsyncSessio
 
 
 @admin_router.get("/categories/list/")
-async def admin_list_categories(session: AsyncSession = Depends(get_db)):
+async def admin_list_categories(page_params: PageParams = Depends(), session: AsyncSession = Depends(get_db)):
     return await get_objects_list(
         model=Category,
         dal=CommonAdminDAL,
         response_model=CategoryToShow,
-        session=session
+        session=session,
+        page_params=page_params
     )
 
 

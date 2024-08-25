@@ -1,7 +1,8 @@
 from http import HTTPStatus
 from fastapi import HTTPException
 
-from fastapi import Response
+from fastapi import Response, Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 __all__ = (
@@ -11,6 +12,8 @@ __all__ = (
     "delete_object_by_id",
     "get_objects_list"
 )
+
+from pagination import PageParams, paginate
 
 
 async def create_new_object(model, dal, response_model, body: dict, session: AsyncSession):
@@ -41,8 +44,15 @@ async def delete_object_by_id(model, dal, object_id, session: AsyncSession):
         return Response(status_code=HTTPStatus.NO_CONTENT)
 
 
-async def get_objects_list(model, dal, response_model, session: AsyncSession):
+async def get_objects_list(
+        model,
+        dal,
+        response_model,
+        session: AsyncSession,
+        page_params: PageParams
+):
     async with session.begin():
         current_dal = dal(model, session)
-        result = await current_dal.get_full_objects_list()
+        result = await current_dal.get_full_objects_list(page_params)
+        # return await paginate(page_params, result, response_model)
         return [response_model.model_validate(row, from_attributes=True) for row in result]
