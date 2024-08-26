@@ -51,8 +51,11 @@ async def get_objects_list(
         session: AsyncSession,
         page_params: PageParams
 ):
-    async with session.begin():
+    async with (session.begin()):
         current_dal = dal(model, session)
-        result = await current_dal.get_full_objects_list(page_params)
+        count, rows = await current_dal.get_full_objects_list(page_params)
         # return await paginate(page_params, result, response_model)
-        return [response_model.model_validate(row, from_attributes=True) for row in result]
+        return {
+            "objects_count": count,
+            "objects": [response_model.model_validate(row, from_attributes=True) for row in rows]
+        }
