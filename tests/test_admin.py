@@ -66,7 +66,7 @@ async def test_admin_objects(url, model, data_dict, update_data_dict, client, as
             await session.commit()
         data_dict["category_id"] = new_category.id
 
-    response = client.post(f"api/admin/{url}/", data=json.dumps(data_dict))
+    response = client.post(f"api/admin/{url}/", content=json.dumps(data_dict))
     assert response.status_code == 200
     object_from_db_id = response.json()["id"]
 
@@ -81,7 +81,7 @@ async def test_admin_objects(url, model, data_dict, update_data_dict, client, as
             continue
         assert getattr(result, key) == value, "Неверное сохранение объекта в бд"
 
-    update_response = client.post(f"api/admin/{url}/{object_from_db_id}/", data=json.dumps(update_data_dict))
+    update_response = client.post(f"api/admin/{url}/{object_from_db_id}/", content=json.dumps(update_data_dict))
     assert update_response.status_code == 200
 
     async with async_session_test() as session:
@@ -109,10 +109,47 @@ async def test_admin_objects(url, model, data_dict, update_data_dict, client, as
 
     list_response = client.get(url=f"api/admin/{url}/list/")
     assert list_response.status_code == HTTPStatus.OK, "Неверный статус запроса к списку объектов"
-    assert updated_data in list_response.json(), "Объекта нет в списке либо он там отображен некорректно"
+    resp_data = list_response.json()
+    assert "objects_count" in resp_data and "objects" in resp_data, "Не прикручена пагинация"
+    assert updated_data in resp_data.get("objects"), "Объекта нет в списке либо он там отображен некорректно"
 
     delete_response = client.delete(url=f"api/admin/{url}/{object_from_db_id}/")
     assert delete_response.status_code == HTTPStatus.NO_CONTENT
 
     single_response = client.get(url=f"api/admin/{url}/{object_from_db_id}/")
     assert single_response.status_code == HTTPStatus.NOT_FOUND, "Неверный статус запроса к деталке объекта"
+
+
+@pytest.mark.parametrize(
+    "url,model,data_dict",
+    [
+        ("categories", Category, category_data),
+        ("products", Product, product_data),
+        ("users", User, user_data),
+    ]
+)
+async def test_admin_pagination(url, model, data_dict, client, async_session_test):
+    if url == "products":
+        new_category = Category(
+            name="test_category",
+            is_active=True,
+        )
+        async with async_session_test() as session:
+            session.add(new_category)
+            await session.commit()
+        data_dict["category_id"] = new_category.id
+    if url == "users":
+        key = "username"
+    else:
+        key = "name"
+    async with async_session_test() as session:
+        for index in range(25):
+            data_dict[key] = f"{model.__name__}_{index}@some.url"
+            new_object = model(**data_dict)
+            session.add(new_object)
+        await session.commit()
+    list_response = client.get(url=f"api/admin/{url}/list/?page=2&size=10")
+    assert list_response.status_code == HTTPStatus.OK, "Неверный статус запроса при наличии пагинации"
+    resp_data = list_response.json()
+    assert resp_data.get("objects_count") > 2
+    assert len(resp_data.get("objects")) == 10

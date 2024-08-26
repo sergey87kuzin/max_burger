@@ -19,7 +19,7 @@ async def admin_create_user(user: UserToCreate, session: AsyncSession = Depends(
         model=User,
         dal=CommonAdminDAL,
         response_model=UserToShow,
-        body=user.dict(),
+        body=user.model_dump(),
         session=session
     )
 
@@ -52,7 +52,7 @@ async def admin_update_user(user_id: int, user_data: UserToUpdate, session: Asyn
         model=User,
         dal=CommonAdminDAL,
         object_id=user_id,
-        body=user_data.dict(),
+        body=user_data.model_dump(),
         response_model=UserToShow,
         session=session
     )
@@ -75,7 +75,7 @@ async def admin_create_product(product: ProductToCreate, session: AsyncSession =
         model=Product,
         dal=CommonAdminDAL,
         response_model=ProductToShow,
-        body=product.dict(),
+        body=product.model_dump(),
         session=session
     )
 
@@ -112,7 +112,7 @@ async def admin_update_product(
         model=Product,
         dal=CommonAdminDAL,
         object_id=product_id,
-        body=product_data.dict(),
+        body=product_data.model_dump(),
         response_model=ProductToShow,
         session=session
     )
@@ -135,7 +135,7 @@ async def admin_create_category(category: CategoryToCreate, session: AsyncSessio
         model=Category,
         dal=CommonAdminDAL,
         response_model=CategoryToShow,
-        body=category.dict(),
+        body=category.model_dump(),
         session=session
     )
 
@@ -172,7 +172,7 @@ async def admin_update_category(
         model=Category,
         dal=CommonAdminDAL,
         object_id=category_id,
-        body=category_data.dict(),
+        body=category_data.model_dump(),
         response_model=CategoryToShow,
         session=session
     )

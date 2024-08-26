@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from fastapi import HTTPException, Response
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 __all__ = (
@@ -18,12 +18,13 @@ class CommonAdminDAL:
         self.db_session = session
 
     async def get_full_objects_list(self, page_params: PageParams):
+        count = await self.db_session.execute(select(func.count()).select_from(self.model))
         rows = await self.db_session.execute(
             select(self.model)
             .limit(page_params.size)
             .offset((page_params.page - 1) * page_params.size)
         )
-        return rows.scalars().all()
+        return count.scalar(), rows.scalars().all()
 
     async def get_object_by_id(self, object_id: int):
         query = (
