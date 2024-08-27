@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
+from fastapi_filter import FilterDepends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin import get_objects_list, CommonAdminDAL, get_object, update_object_by_id, delete_object_by_id, \
-    create_new_object
+    create_new_object, ProductFilter, UserFilter, CategoryFilter
 from api_models import UserToShow, UserToCreate, UserToUpdate, ProductToShow, ProductToUpdate, ProductToCreate, \
     CategoryToCreate, CategoryToShow, CategoryToUpdate
 from database_interaction import get_db
@@ -25,13 +26,18 @@ async def admin_create_user(user: UserToCreate, session: AsyncSession = Depends(
 
 
 @admin_router.get("/users/list/")
-async def admin_list_users(page_params: PageParams = Depends(), session: AsyncSession = Depends(get_db)):
+async def admin_list_users(
+        user_filter: UserFilter = FilterDepends(UserFilter),
+        page_params: PageParams = Depends(),
+        session: AsyncSession = Depends(get_db)
+):
     return await get_objects_list(
         model=User,
         dal=CommonAdminDAL,
         response_model=UserToShow,
         session=session,
-        page_params=page_params
+        page_params=page_params,
+        custom_filter=user_filter
     )
 
 
@@ -81,13 +87,18 @@ async def admin_create_product(product: ProductToCreate, session: AsyncSession =
 
 
 @admin_router.get("/products/list/")
-async def admin_list_products(page_params: PageParams = Depends(), session: AsyncSession = Depends(get_db)):
+async def admin_list_products(
+        product_filter: ProductFilter = FilterDepends(ProductFilter),
+        page_params: PageParams = Depends(),
+        session: AsyncSession = Depends(get_db)
+):
     return await get_objects_list(
         model=Product,
         dal=CommonAdminDAL,
         response_model=ProductToShow,
         session=session,
-        page_params=page_params
+        page_params=page_params,
+        custom_filter=product_filter
     )
 
 
@@ -141,13 +152,18 @@ async def admin_create_category(category: CategoryToCreate, session: AsyncSessio
 
 
 @admin_router.get("/categories/list/")
-async def admin_list_categories(page_params: PageParams = Depends(), session: AsyncSession = Depends(get_db)):
+async def admin_list_categories(
+        category_filter: CategoryFilter = FilterDepends(CategoryFilter),
+        page_params: PageParams = Depends(),
+        session: AsyncSession = Depends(get_db)
+):
     return await get_objects_list(
         model=Category,
         dal=CommonAdminDAL,
         response_model=CategoryToShow,
         session=session,
-        page_params=page_params
+        page_params=page_params,
+        custom_filter=category_filter
     )
 
 
