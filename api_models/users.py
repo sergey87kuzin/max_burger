@@ -7,6 +7,15 @@ from pydantic import BaseModel, EmailStr, field_validator
 from common_api_model import TunedModel
 from hashing import Hasher
 
+__all__ = (
+    "UserToCreate",
+    "UserToUpdate",
+    "UserToUpdateProfile",
+    "UserToShow",
+    "Token",
+    "UserPassword"
+)
+
 
 class UserToCreate(BaseModel):
     first_name: str
@@ -41,6 +50,12 @@ class UserToUpdate(BaseModel):
     is_staff: Optional[bool] = None
     is_admin: Optional[bool] = None
     is_active: Optional[bool] = None
+
+
+class UserToUpdateProfile(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
 
 
 class UserToShow(TunedModel):

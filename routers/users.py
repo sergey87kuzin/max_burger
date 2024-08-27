@@ -6,15 +6,17 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_models import UserToCreate, UserToShow, Token, UserPassword
+from api_models import UserToCreate, UserToShow, Token, UserPassword, AddressToUpdate, AddressToCreate, UserToUpdate, \
+    UserToUpdateProfile
+from dals import UserDAL
 from database_interaction import get_db
 from db_models import User
 from global_constants import UserRole
 from handlers import create_new_user
+from handlers.addresses import get_user_address, update_user_address, create_user_address
 from handlers.auth import authenticate_user, create_token, create_refresh_token, validate_refresh_token, \
-    update_refresh_token, RoleChecker, oauth2_scheme, get_current_user
-from handlers.users import change_user_password
-from hashing import Hasher
+    update_refresh_token, get_current_user
+from handlers.users import change_user_password, _update_user
 from settings import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES
 
 user_router = APIRouter()
@@ -23,7 +25,7 @@ user_router = APIRouter()
 @user_router.post("/", response_model=UserToShow)
 async def create_user(
         user: UserToCreate,
-        session: AsyncSession = Depends(RoleChecker(allowed_roles=["admin"]))
+        session: AsyncSession = Depends(get_db)
 ) -> UserToShow:
     created_user = await create_new_user(user, session)
     return created_user
@@ -42,6 +44,75 @@ async def change_password(
             detail="Username is incorrect",
         )
     await change_user_password(username=username, password=new_password.password, session=session)
+
+
+@user_router.get("/me/")
+async def user_detail(
+        user_data: Annotated[tuple[User, AsyncSession], Depends(get_current_user)]
+):
+    user, session = user_data
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail="You are not registered",
+        )
+    return UserToShow.model_validate(user)
+
+
+@user_router.post("/me/")
+async def update_user(
+        update_data: UserToUpdateProfile,
+        user_data: Annotated[tuple[User, AsyncSession], Depends(get_current_user)]
+):
+    user, session = user_data
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail="You are not registered",
+        )
+    return await _update_user(user.id, update_data, session)
+
+
+@user_router.get("/my_address/")
+async def my_address(
+        user_data: Annotated[tuple[User, AsyncSession], Depends(get_current_user)]
+):
+    user, session = user_data
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail="You are not registered",
+        )
+    return await get_user_address(user.id, session)
+
+
+@user_router.post("/my_address/")
+async def change_my_address(
+        address_data: AddressToUpdate,
+        user_data: Annotated[tuple[User, AsyncSession], Depends(get_current_user)]
+):
+    user, session = user_data
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail="You are not registered",
+        )
+    return await update_user_address(user.id, address_data, session)
+
+
+@user_router.post("/create_address/")
+async def create_address(
+        address_data: AddressToCreate,
+        user_data: Annotated[tuple[User, AsyncSession], Depends(get_current_user)]
+):
+    user, session = user_data
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN,
+            detail="You are not registered",
+        )
+    address_data.user_id = user.id
+    return await create_user_address(address_data, session)
 
 
 @user_router.post("/token")

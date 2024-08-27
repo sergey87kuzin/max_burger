@@ -1,9 +1,11 @@
+from http import HTTPStatus
+
 from fastapi import HTTPException
 
 from sqlalchemy import select, and_, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_models import UserToCreate
+from api_models import UserToCreate, UserToUpdate, UserToUpdateProfile
 from db_models import User
 from hashing import Hasher
 
@@ -45,4 +47,15 @@ class UserDAL:
             .values({"password": Hasher.get_password_hash(new_password)})
         )
         await self.db_session.execute(query)
-        await self.db_session.commit()
+
+    async def update_user(self, user_id: int, user_data: UserToUpdateProfile) -> User:
+        update_data = {key: value for key, value in user_data.model_dump().items() if value is not None}
+        query = update(User).where(User.id == user_id).values(update_data).returning(User)
+        result = await self.db_session.execute(query)
+        user = result.scalar()
+        if not user:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail="User not found"
+            )
+        return user
