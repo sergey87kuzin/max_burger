@@ -18,20 +18,18 @@ T = TypeVar("T")
 class PagedResponseSchema(BaseModel, Generic[T]):
     """Response schema for any paged API."""
 
-    total: int
+    objects_count: int
     page: int
     size: int
-    results: List[T]
+    objects: List[T]
 
 
-async def paginate(page_params: PageParams, query, response_model) -> PagedResponseSchema[T]:
+async def paginate(count: int, objects: list, page_params: PageParams, response_model) -> PagedResponseSchema[T]:
     """Paginate the query."""
 
-    paginated_query = await query.offset((page_params.page - 1) * page_params.size).limit(page_params.size).all()
-
     return PagedResponseSchema(
-        total=query.count(),
+        objects_count=count,
         page=page_params.page,
         size=page_params.size,
-        results=[response_model.from_orm(item) for item in paginated_query],
+        objects=[response_model.model_validate(item) for item in objects],
     )

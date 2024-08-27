@@ -1,9 +1,11 @@
 from http import HTTPStatus
-from fastapi import HTTPException
 
-from fastapi import Response, Depends
-from sqlalchemy import select
+from fastapi import Response
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from common_api_model import TunedModel
+from db_models import Base
+from pagination import PageParams, paginate, PagedResponseSchema
 
 __all__ = (
     "create_new_object",
@@ -13,31 +15,47 @@ __all__ = (
     "get_objects_list"
 )
 
-from pagination import PageParams, paginate
 
-
-async def create_new_object(model, dal, response_model, body: dict, session: AsyncSession):
+async def create_new_object(
+        model,
+        dal,
+        response_model,
+        body: dict,
+        session: AsyncSession
+) -> TunedModel:
     async with session.begin():
         current_dal = dal(model, session)
         created_object = await current_dal.create_object(body)
-        return response_model.model_validate(created_object, from_attributes=True)
+        return response_model.model_validate(created_object)
 
 
-async def get_object(model, dal, response_model, object_id, session: AsyncSession):
+async def get_object(model, dal, response_model, object_id, session: AsyncSession) -> TunedModel:
     async with session.begin():
         current_dal = dal(model, session)
         found_object = await current_dal.get_object_by_id(object_id)
-        return response_model.model_validate(found_object, from_attributes=True)
+        return response_model.model_validate(found_object)
 
 
-async def update_object_by_id(model, dal, response_model, object_id: int, body: dict, session: AsyncSession):
+async def update_object_by_id(
+        model,
+        dal,
+        response_model,
+        object_id: int,
+        body: dict,
+        session: AsyncSession
+) -> TunedModel:
     async with session.begin():
         current_dal = dal(model, session)
         updated_object = await current_dal.update_object(object_id, body)
-        return response_model.model_validate(updated_object, from_attributes=True)
+        return response_model.model_validate(updated_object)
 
 
-async def delete_object_by_id(model, dal, object_id, session: AsyncSession):
+async def delete_object_by_id(
+        model,
+        dal,
+        object_id: int,
+        session: AsyncSession
+):
     async with session.begin():
         current_dal = dal(model, session)
         await current_dal.delete_object(object_id)
@@ -49,13 +67,15 @@ async def get_objects_list(
         dal,
         response_model,
         session: AsyncSession,
-        page_params: PageParams
-):
+        page_params: PageParams,
+        custom_filter
+) -> PagedResponseSchema:
     async with (session.begin()):
         current_dal = dal(model, session)
-        count, rows = await current_dal.get_full_objects_list(page_params)
-        # return await paginate(page_params, result, response_model)
-        return {
-            "objects_count": count,
-            "objects": [response_model.model_validate(row, from_attributes=True) for row in rows]
-        }
+        count, rows = await current_dal.get_full_objects_list(page_params, custom_filter)
+        return await paginate(
+            count=count,
+            objects=rows,
+            page_params=page_params,
+            response_model=response_model
+        )
