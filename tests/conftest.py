@@ -123,15 +123,7 @@ async def create_category(async_session_test):
 @pytest.fixture
 async def create_admin(async_session_test):
     async def create_admin_in_database(username: str, password: str):
-        # fields = ["username", "first_name", "last_name", "phone", "password", "is_active", "is_staff", "is_admin"]
-        # fields_str = ",".join(fields)
         password = Hasher.get_password_hash(password)
-        # values = [username, "Grey", "Tres", "+79117973895", password, "true", "true", "true"]
-        # values_str = ",".join(values)
-        # async with async_session_test() as connection:
-        #     return await connection.execute(text(
-        #         f"INSERT INTO users ({fields_str}) VALUES ({values_str})",
-        #     ))
         new_admin = User(
             username=username,
             first_name="Grey",
