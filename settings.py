@@ -17,6 +17,7 @@ TEST_DATABASE_URL = os.getenv(
     default="postgresql+asyncpg://sergey:11@localhost:5432/maxburger_test",
 )
 TEST_PASSWORD = os.getenv("TEST_PASSWORD")
+SITE_DOMAIN = os.getenv("SITE_DOMAIN")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
