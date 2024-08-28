@@ -8,6 +8,7 @@ import requests
 from sqlalchemy import select
 
 from db_models import User, Category, Product
+from settings import TEST_PASSWORD
 
 user_data = {
     "first_name": "John",
@@ -64,8 +65,8 @@ async def test_admin_objects(
         create_admin
 ):
 
-    await create_admin("GreyTres@admin.ru", "323456Nn")
-    access_data = {"username": "GreyTres@admin.ru", "password": "323456Nn"}
+    await create_admin("GreyTres@admin.ru", TEST_PASSWORD)
+    access_data = {"username": "GreyTres@admin.ru", "password": TEST_PASSWORD}
     tokens = client.post("api/users/token", data=access_data).json()
     token = tokens.get("access_token")
     headers = {"Authorization": f"Bearer {token}"}
