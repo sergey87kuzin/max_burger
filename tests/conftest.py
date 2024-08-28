@@ -14,7 +14,8 @@ from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
 
 from database_interaction import get_db
-from db_models import Category
+from db_models import Category, User
+from hashing import Hasher
 from main import app
 from settings import TEST_DATABASE_URL
 
@@ -120,33 +121,33 @@ async def create_category(async_session_test):
 
 
 @pytest.fixture
-async def create_user_in_database(asyncpg_pool):
-    async def create_user_in_database(
-        user_id: str,
-        first_name: str,
-        last_name: str,
-        username: str,
-        phone: str,
-        is_active: bool,
-        is_staff: bool,
-        is_admin: bool,
-        hashed_password: str,
-    ):
-        async with asyncpg_pool.acquire() as connection:
-            return await connection.execute(text(
-                """INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)""",
-                user_id,
-                username,
-                first_name,
-                last_name,
-                phone,
-                is_staff,
-                is_admin,
-                hashed_password,
-                is_active
-            ))
+async def create_admin(async_session_test):
+    async def create_admin_in_database(username: str, password: str):
+        # fields = ["username", "first_name", "last_name", "phone", "password", "is_active", "is_staff", "is_admin"]
+        # fields_str = ",".join(fields)
+        password = Hasher.get_password_hash(password)
+        # values = [username, "Grey", "Tres", "+79117973895", password, "true", "true", "true"]
+        # values_str = ",".join(values)
+        # async with async_session_test() as connection:
+        #     return await connection.execute(text(
+        #         f"INSERT INTO users ({fields_str}) VALUES ({values_str})",
+        #     ))
+        new_admin = User(
+            username=username,
+            first_name="Grey",
+            last_name="Tres",
+            phone="+79117973895",
+            is_active=True,
+            is_staff=True,
+            is_admin=True,
+            password=password
+        )
+        async with async_session_test() as session:
+            session.add(new_admin)
+            await session.commit()
+        return new_admin
 
-    return create_user_in_database
+    return create_admin_in_database
 
 
 # def create_test_auth_headers_for_user(email: str) -> dict[str, str]:
