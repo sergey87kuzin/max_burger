@@ -1,5 +1,6 @@
 from typing import Optional
 
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from db_models import Base, intpk, str_128, str_64, str_16, str_256
@@ -20,10 +21,10 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(default=False)
     password: Mapped[str_256]
 
-    # cart: Mapped[Optional["Cart"]] = relationship(
-    #     back_populates='user',
-    #     primaryjoin="User.id == Cart.user_id"
-    # )
+    carts: Mapped[Optional["Cart"]] = relationship(
+        back_populates='user',
+        primaryjoin="User.id == Cart.user_id"
+    )
 
     addresses: Mapped[Optional[list["Address"]]] = relationship(
         back_populates="user",
