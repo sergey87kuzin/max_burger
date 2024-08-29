@@ -6,9 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_models import UserToCreate, UserToShow, Token, UserPassword, AddressToUpdate, AddressToCreate, UserToUpdate, \
+from api_models import UserToCreate, UserToShow, Token, UserPassword, AddressToUpdate, AddressToCreate, \
     UserToUpdateProfile
-from dals import UserDAL
 from database_interaction import get_db
 from db_models import User
 from global_constants import UserRole
