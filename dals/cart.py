@@ -1,4 +1,6 @@
-from sqlalchemy import select, and_, update
+from fastapi import HTTPException
+
+from sqlalchemy import select, and_, update, delete
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,7 +38,7 @@ class CartDAL:
             user_id=user_id,
             products_count=0,
             total_price=0,
-            payment_status=PaymentStatus.NOT_PAID,
+            payment_status=PaymentStatus.NOT_PAID
         )
         self.db_session.add(new_cart)
         await self.db_session.flush()
@@ -46,7 +48,10 @@ class CartDAL:
         product_query = select(Product).where(Product.id == product_id)
         product_row = await self.db_session.execute(product_query)
         product = product_row.fetchone()[0]
-        items = cart.products
+        if cart.products_count == 0:
+            items = []
+        else:
+            items = cart.products
         in_cart = False
         for item in items:
             if item.product_id == product_id:
@@ -59,6 +64,7 @@ class CartDAL:
                 )
                 await self.db_session.execute(product_query)
                 in_cart = True
+                break
         if not in_cart:
             new_product = CartItem(
                 product_id=product_id,
@@ -75,6 +81,43 @@ class CartDAL:
             .where(Cart.id == cart.id)
             .values({"products_count": products_count, "total_price": total_price})
         )
+        await self.db_session.execute(cart_query)
 
-    async def drop_product_from_cart(self, cart_id: int, product_id: int, quantity: int) -> Cart:
-        pass
+    async def remove_product_from_cart(self, cart: Cart, product_id: int, quantity: int) -> None:
+        product_query = select(Product).where(Product.id == product_id)
+        product_row = await self.db_session.execute(product_query)
+        product = product_row.fetchone()[0]
+        if cart.products_count == 0:
+            items = []
+        else:
+            items = cart.products
+        in_cart = False
+        for item in items:
+            if item.product_id == product_id:
+                if item.count > quantity:
+                    count = item.count - quantity
+                    position_price = item.position_price - product.price * quantity
+                    product_query = (
+                        update(CartItem)
+                        .where(CartItem.product_id == product_id)
+                        .values({"count": count, "position_price": position_price})
+                    )
+                else:
+                    quantity = item.count
+                    product_query = (
+                        delete(CartItem)
+                        .where(CartItem.product_id == product_id)
+                    )
+                await self.db_session.execute(product_query)
+                in_cart = True
+                break
+        if not in_cart:
+            raise HTTPException(status_code=404, detail="Товара не было в корзине")
+        products_count = cart.products_count - quantity
+        total_price = cart.total_price - product.price * quantity
+        cart_query = (
+            update(Cart)
+            .where(Cart.id == cart.id)
+            .values({"products_count": products_count, "total_price": total_price})
+        )
+        await self.db_session.execute(cart_query)
