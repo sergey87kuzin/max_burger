@@ -20,7 +20,7 @@ class CartToShow(TunedModel):
     products_count: int
 
 
-class AddToCart(BaseModel):
+class CartProductData(BaseModel):
     user_id: int
     product_id: int
     quantity: int

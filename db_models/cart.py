@@ -25,7 +25,7 @@ class Cart(Base):
         primaryjoin="User.id == Cart.user_id",
         back_populates="carts"
     )
-    products: Mapped[Optional[list["CartItem"]]] = relationship(
+    products: Mapped[list["CartItem"]] = relationship(
         back_populates='cart',
         primaryjoin="Cart.id == CartItem.cart_id"
     )
