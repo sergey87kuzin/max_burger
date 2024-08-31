@@ -26,3 +26,10 @@ async def remove_from_cart(user_id: int, product_id: int, quantity: int, session
         await cart_dal.remove_product_from_cart(cart, product_id, quantity)
         result_cart = await cart_dal.get_cart_by_user_id(user_id=user_id)
     return CartToShow.model_validate(result_cart)
+
+
+async def get_cart_list(user_id: int, session: AsyncSession) -> CartToShow:
+    async with session.begin():
+        cart_dal = CartDAL(session)
+        cart = await cart_dal.get_cart_list(user_id=user_id)
+    return CartToShow.model_validate(cart)

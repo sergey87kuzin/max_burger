@@ -14,7 +14,7 @@ class CartItemToShow(TunedModel):
 
 
 class CartToShow(TunedModel):
-    id: int
+    id: int | None = None
     products: List[CartItemToShow]
     total_price: float
     products_count: int
@@ -24,3 +24,7 @@ class CartProductData(BaseModel):
     user_id: int
     product_id: int
     quantity: int
+
+
+class CartGetInfo(BaseModel):
+    user_id: int
