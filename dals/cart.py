@@ -121,3 +121,29 @@ class CartDAL:
             .values({"products_count": products_count, "total_price": total_price})
         )
         await self.db_session.execute(cart_query)
+
+    async def get_cart_list(self, user_id: int) -> Cart | dict:
+        cart_query = (
+            select(Cart)
+            .where(and_(
+                Cart.user_id == user_id,
+                Cart.payment_status == PaymentStatus.NOT_PAID
+            ))
+            .options(
+                selectinload(Cart.products)
+                .options(
+                    joinedload(CartItem.product, innerjoin=True),
+                )
+            )
+        )
+        cart = await self.db_session.execute(cart_query)
+        cart = cart.fetchone()
+        if cart:
+            return cart[0]
+        return {
+            "user_id": user_id,
+            "total_price": 0,
+            "payment_status": PaymentStatus.NOT_PAID,
+            "products_count": 0,
+            "products": []
+        }
