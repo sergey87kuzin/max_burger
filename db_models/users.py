@@ -30,10 +30,10 @@ class User(Base):
         back_populates="user",
         primaryjoin="User.id == Address.user_id"
     )
-    # orders: Mapped[Optional[list["Order"]]] = relationship(
-    #     back_populates="user",
-    #     primaryjoin="User.id == Order.user_id"
-    # )
+    orders: Mapped[Optional[list["Order"]]] = relationship(
+        back_populates="user",
+        primaryjoin="User.id == Order.user_id"
+    )
 
     def __repr__(self):
         return f"Пользователь {self.username}"
