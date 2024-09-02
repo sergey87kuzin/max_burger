@@ -4,7 +4,8 @@ from api_models.cart import CartToShow
 
 __all__ = (
     "add_product_to_cart",
-    "remove_from_cart"
+    "remove_from_cart",
+    "get_cart_list"
 )
 
 from dals import CartDAL

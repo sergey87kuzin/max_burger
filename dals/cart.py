@@ -4,12 +4,12 @@ from sqlalchemy import select, and_, update, delete
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from db_models import Cart, CartItem, Product
+from global_constants import PaymentStatus
+
 __all__ = (
     "CartDAL",
 )
-
-from db_models import Cart, CartItem, Product
-from global_constants import PaymentStatus
 
 
 class CartDAL:

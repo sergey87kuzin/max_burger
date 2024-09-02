@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey, Column
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy_utils import ChoiceType
 
-from db_models import Base, intpk, str_32, str_128
+from db_models import Base, intpk, str_32, str_128, str_64
 
 __all__ = ("Order", "OrderItem")
 
@@ -19,6 +19,10 @@ class Order(Base):
     delivery_price: Mapped[int]
     payment_status: Mapped[str_32] = Column(ChoiceType(PaymentStatus))
     payment_url: Mapped[Optional[str_128]]
+    city: Mapped[Optional[str_64]]
+    street: Mapped[Optional[str_64]]
+    house_number: Mapped[Optional[str_64]]
+    apartment: Mapped[Optional[str_64]]
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"),
     )
