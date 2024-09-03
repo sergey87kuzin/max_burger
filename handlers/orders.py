@@ -7,6 +7,7 @@ __all__ = (
     "create_order_from_cart",
 )
 
+from api_models import OrderToShow
 from dals import CartDAL
 from dals.orders import OrderDAL
 
@@ -18,7 +19,7 @@ async def create_order_from_cart(
         house_number: str,
         apartment: str,
         session: AsyncSession
-):
+) -> OrderToShow:
     async with session.begin():
         cart_dal = CartDAL(session)
         cart = await cart_dal.get_cart_by_user_id(user_id=user_id)
@@ -35,4 +36,4 @@ async def create_order_from_cart(
             house_number=house_number,
             apartment=apartment
         )
-    return order
+    return OrderToShow.model_validate(order)

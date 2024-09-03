@@ -25,7 +25,7 @@ class OrderDAL:
             street: str = None,
             house_number: str = None,
             apartment: str = None
-    ):
+    ) -> Order:
         if city:
             total_price = cart.total_price + DELIVERY_PRICE
             delivery_price = DELIVERY_PRICE
@@ -54,3 +54,4 @@ class OrderDAL:
             )
             self.db_session.add(new_order_product)
         await self.db_session.flush()
+        return new_order
