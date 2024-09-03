@@ -35,3 +35,4 @@ async def create_order_from_cart(
             house_number=house_number,
             apartment=apartment
         )
+    return order
