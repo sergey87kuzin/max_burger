@@ -20,5 +20,5 @@ class OrderToCreate(BaseModel):
 
 class OrderToShow(TunedModel):
     id: int
-    payment_url: str
+    payment_url: Optional[str] = None
     payment_status: str

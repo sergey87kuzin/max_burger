@@ -46,7 +46,7 @@ class OrderItem(Base):
     position_price: Mapped[float]
     count: Mapped[int]
     order_id: Mapped[int] = mapped_column(
-        ForeignKey("carts.id", ondelete="CASCADE"),
+        ForeignKey("orders.id", ondelete="CASCADE"),
     )
     order: Mapped["Order"] = relationship(
         back_populates='products',
