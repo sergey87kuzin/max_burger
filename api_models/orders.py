@@ -7,6 +7,7 @@ __all__ = (
     "OrderToShow"
 )
 
+from api_models.products import ProductToShow
 from common_api_model import TunedModel
 from global_constants import PaymentType
 
@@ -24,7 +25,14 @@ class OrderToCreate(BaseModel):
         return value or PaymentType.CASH
 
 
+class OrderProductToShow(TunedModel):
+    position_price: float
+    count: int
+    product: ProductToShow
+
+
 class OrderToShow(TunedModel):
     id: int
     payment_url: Optional[str] = None
     payment_status: str
+    products: list[OrderProductToShow]

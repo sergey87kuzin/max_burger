@@ -9,7 +9,7 @@ __all__ = (
     "update_order"
 )
 
-from api_models import OrderToShow
+from api_models.orders import OrderToShow
 from dals import CartDAL
 from dals.orders import OrderDAL
 
@@ -38,11 +38,19 @@ async def create_order_from_cart(
             house_number=house_number,
             apartment=apartment
         )
-    return OrderToShow.model_validate(order)
+    return await get_order_by_id(order.id, session=session)
 
 
 async def get_order_by_id(order_id: int, session: AsyncSession) -> OrderToShow:
-    pass
+    async with session.begin():
+        order_dal = OrderDAL(session)
+        order = await order_dal.get_order_by_id(order_id=order_id)
+        if not order:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail="Заказ не найден"
+            )
+    return OrderToShow.model_validate(order)
 
 
 async def update_order(order_id: int, update_data: dict, session: AsyncSession) -> OrderToShow:

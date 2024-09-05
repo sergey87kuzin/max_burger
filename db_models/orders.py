@@ -16,7 +16,7 @@ class Order(Base):
     __tablename__ = 'orders'
 
     id: Mapped[intpk]
-    created_at: Mapped[datetime]
+    created_at: Mapped[Optional[datetime]]
     total_price: Mapped[float]
     delivery_price: Mapped[int]
     delivery_type: Mapped[str_32] = Column(ChoiceType(DeliveryType))

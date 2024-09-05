@@ -12,7 +12,7 @@ from fastapi.responses import RedirectResponse
 import requests
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_models import OrderToShow
+from api_models.orders import OrderToShow
 from global_constants import PaymentStatus
 from handlers.orders import get_order_by_id, update_order
 from settings import SITE_DOMAIN, SBER_USERNAME, SBER_PASSWORD, ENVIRONMENT, CALLBACK_TOKEN, OPERATOR_PHONE, PHONE, INN, \
@@ -110,7 +110,6 @@ class SberPaymentsService:
             self.__ORDER_REGISTRATION_LINK = self.PAYMENT_HOST_PROD + self.ORDER_REGISTRATION_LINK
 
     def __create_cart_items(self) -> List[dict]:
-        # sourcery skip: dict-assign-update-to-union
         for position, product_in_order in enumerate(self.order.products, start=1):
             cart_item = {
                 "positionId": position,
@@ -135,11 +134,6 @@ class SberPaymentsService:
             {"name": "paymentObject", "value": self.DEFAULT_PAYMENT_OBJECT},
         ]
 
-    def __get_payer_full_name_if_exists(self) -> str:
-        """to customerDetails"""
-        if self.order.user.first_name and self.order.user.last_name:
-            return f"{self.order.user.first_name} {self.order.user.last_name}"
-
     def __get_post_address(self) -> str:
         street = self.order.street
         house = self.order.house_number
@@ -159,7 +153,7 @@ class SberPaymentsService:
         payload = {
             "userName": self.API_USERNAME,
             "password": self.PASSWORD,
-            "orderNumber": f"{self.order.id}{LETTER_FOR_SBER_ORDER}",  # autogenerate field (slow)
+            "orderNumber": f"{self.order.id}{LETTER_FOR_SBER_ORDER}",
             "amount": int(self.order.total_price) * 100,  # в копейках
             "currency": self.DEFAULT_CURRENCY_CODE,
             "returnUrl": self.SITE_HOST + f"/orders/{self.order.id}/?newOrder=true&statusPay=success",
@@ -216,16 +210,6 @@ class SberPaymentsService:
             "itemAttributes": {"attributes": self.__get_items_attributes()},
         }
         self.cart_items.append(delivery_item)
-
-    def get_order_status(self, sber_order_id: str):
-        payload = {
-            "userName": self.API_USERNAME,
-            "password": quote_plus(string=self.PASSWORD, encoding="utf-8"),
-            "orderId": sber_order_id,
-        }
-
-        response = requests.post(url=self.__ORDER_STATUS_LINK, data=payload, headers=self.HEADERS)
-        return response.json() if response.status_code == HTTPStatus.OK else None
 
     def calculate_hashsum(self, data: Dict) -> bool:
         checksum = data.pop("checksum", None)
