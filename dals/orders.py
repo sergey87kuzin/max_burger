@@ -1,10 +1,10 @@
 from fastapi import HTTPException
 
-from sqlalchemy import select, and_, update, delete
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db_models import Cart, CartItem, Product, Order, OrderItem
+from db_models import Cart, Order, OrderItem
 from global_constants import PaymentStatus
 
 __all__ = (
@@ -55,3 +55,15 @@ class OrderDAL:
             self.db_session.add(new_order_product)
         await self.db_session.flush()
         return new_order
+
+    async def get_order_by_id(self, order_id: int) -> Order:
+        query = (
+            select(Order)
+            .where(Order.id == order_id)
+            .options(
+                selectinload(Order.products)
+                .options(joinedload(OrderItem.product))
+            )
+        )
+        order = await self.db_session.execute(query)
+        return order.fetchone()[0]
