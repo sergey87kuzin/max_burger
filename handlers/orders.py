@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 __all__ = (
     "create_order_from_cart",
+    "get_order_by_id",
+    "update_order"
 )
 
 from api_models import OrderToShow
@@ -37,3 +39,11 @@ async def create_order_from_cart(
             apartment=apartment
         )
     return OrderToShow.model_validate(order)
+
+
+async def get_order_by_id(order_id: int, session: AsyncSession) -> OrderToShow:
+    pass
+
+
+async def update_order(order_id: int, update_data: dict, session: AsyncSession) -> OrderToShow:
+    pass
