@@ -12,15 +12,18 @@ from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
 
 from database_interaction import get_db
-from db_models import Category, User
+from db_models import Category, User, Product, Cart, CartItem
+from global_constants import PaymentStatus
 from hashing import Hasher
 from main import app
-from settings import TEST_DATABASE_URL
+from settings import TEST_DATABASE_URL, TEST_PASSWORD
 
 CLEAN_TABLES = [
     "users",
     "categories",
-    "products"
+    "products",
+    "carts",
+    "cart_items",
 ]
 
 
@@ -33,10 +36,11 @@ def event_loop():
 
 @pytest.fixture(scope="session", autouse=True)
 def a_run_migrations():
-    # config = alembic.config.Config("tests/alembic.ini")
-    # alembic.command.revision(config, autogenerate=True, message="test running migrations")
-    # alembic.command.upgrade(config, "head")
     pass
+    # config = alembic.config.Config("alembic.ini")
+    # alembic.command.downgrade(config=config, revision="f46f2088563f")
+    # alembic.command.revision(config, autogenerate=False, message="test running migrations carts and orders")
+    # alembic.command.upgrade(config, "head")
 
 
 @pytest.fixture(scope="session")
@@ -114,7 +118,7 @@ async def create_category(async_session_test):
             is_active=True
         )
         session.add(new_category)
-        session.commit()
+        await session.commit()
         return new_category
 
 
@@ -138,6 +142,67 @@ async def create_admin(async_session_test):
         return new_admin
 
     return create_admin_in_database
+
+
+@pytest.fixture
+async def create_user_cart(async_session_test):
+    async def create_user_cart_in_database(username: str, category_name: str, product_name: str):
+        async with async_session_test() as session:
+            new_category = Category(
+                name=category_name,
+                is_active=True,
+                # cover="some cover"
+            )
+            session.add(new_category)
+            await session.flush()
+
+            new_product = Product(
+                name=product_name,
+                is_combo_product=False,
+                is_active=True,
+                price=100500,
+                category_id=new_category.id,
+                description="some description",
+                image="some_image.jpg",
+            )
+
+            session.add(new_product)
+            await session.flush()
+
+            password = Hasher.get_password_hash(TEST_PASSWORD)
+            user = User(
+                username=username,
+                first_name="Grey",
+                last_name="Tres",
+                phone="+79117973895",
+                is_active=True,
+                is_staff=False,
+                is_admin=False,
+                password=password
+            )
+
+            session.add(user)
+            await session.flush()
+
+            cart = Cart(
+                products_count=1,
+                user_id=user.id,
+                total_price=new_product.price,
+                payment_status=PaymentStatus.NOT_PAID
+            )
+            session.add(cart)
+            await session.flush()
+
+            cart_product = CartItem(
+                cart_id=cart.id,
+                product_id=new_product.id,
+                count=1,
+                position_price=new_product.price,
+            )
+            session.add(cart_product)
+            await session.commit()
+        return cart
+    return create_user_cart_in_database
 
 
 # def create_test_auth_headers_for_user(email: str) -> dict[str, str]:

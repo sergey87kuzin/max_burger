@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy.orm import selectinload, joinedload, load_only
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db_models import Cart, Order, OrderItem
@@ -63,6 +63,9 @@ class OrderDAL:
             .options(
                 selectinload(Order.products)
                 .options(joinedload(OrderItem.product))
+            )
+            .options(
+                load_only(Order.id, Order.user_id, Order.payment_status, Order.payment_url)
             )
         )
         order = await self.db_session.execute(query)
