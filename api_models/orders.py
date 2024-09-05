@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 __all__ = (
     "OrderToCreate",
@@ -8,6 +8,7 @@ __all__ = (
 )
 
 from common_api_model import TunedModel
+from global_constants import PaymentType
 
 
 class OrderToCreate(BaseModel):
@@ -16,6 +17,11 @@ class OrderToCreate(BaseModel):
     street: Optional[str] = None
     house_number: Optional[str] = None
     apartment: Optional[str] = None
+    payment_type: PaymentType
+
+    @field_validator("payment_type", mode="before")
+    def set_name(cls, value):
+        return value or PaymentType.CASH
 
 
 class OrderToShow(TunedModel):
