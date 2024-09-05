@@ -21,16 +21,16 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(default=False)
     password: Mapped[str_256]
 
-    carts: Mapped[Optional["Cart"]] = relationship(
+    carts: Mapped[list["Cart"] | None] = relationship(
         back_populates='user',
         primaryjoin="User.id == Cart.user_id"
     )
 
-    addresses: Mapped[Optional[list["Address"]]] = relationship(
+    addresses: Mapped[list["Address"] | None] = relationship(
         back_populates="user",
         primaryjoin="User.id == Address.user_id"
     )
-    orders: Mapped[Optional[list["Order"]]] = relationship(
+    orders: Mapped[list["Order"] | None] = relationship(
         back_populates="user",
         primaryjoin="User.id == Order.user_id"
     )

@@ -12,7 +12,7 @@ class Category(Base):
 
     id: Mapped[intpk]
     name: Mapped[str_64]
-    cover: Mapped[Optional[str_512]]
+    cover: Mapped[str_512 | None]
     is_active: Mapped[bool] = mapped_column(default=True)
 
     products: Mapped[Optional[list["Product"]]] = relationship(
