@@ -1,10 +1,12 @@
+from http import HTTPStatus
+
 from fastapi import HTTPException
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload, joinedload, load_only
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db_models import Cart, Order, OrderItem
+from db_models import Cart, Order, OrderItem, User
 from global_constants import PaymentStatus
 
 __all__ = (
@@ -70,3 +72,27 @@ class OrderDAL:
         )
         order = await self.db_session.execute(query)
         return order.fetchone()[0]
+
+    async def update_order(self, order_id: int, update_data: dict) -> Order:
+        query = (
+            update(Order)
+            .where(Order.id == order_id)
+            .values(**update_data)
+            .returning(Order)
+        )
+        order = await self.db_session.execute(query)
+        return order.fetchone()[0]
+
+    async def get_orders_by_username(self, username: str) -> list[Order]:
+        query = (
+            select(Order)
+            .join_from(Order, User)
+            .options(
+                selectinload(Order.products)
+                .options(joinedload(OrderItem.product))
+            )
+            .where(User.username == username)
+        )
+        orders = await self.db_session.execute(query)
+        orders = orders.scalars()
+        return list(orders)

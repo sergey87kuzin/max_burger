@@ -24,6 +24,8 @@ CLEAN_TABLES = [
     "products",
     "carts",
     "cart_items",
+    "orders",
+    "order_items",
 ]
 
 
@@ -34,12 +36,10 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope="session", autouse=True)
-def a_run_migrations():
-    pass
+# @pytest.fixture(scope="session", autouse=True)
+# def a_run_migrations():
     # config = alembic.config.Config("alembic.ini")
-    # alembic.command.downgrade(config=config, revision="f46f2088563f")
-    # alembic.command.revision(config, autogenerate=False, message="test running migrations carts and orders")
+    # alembic.command.revision(config, autogenerate=True, message="test running migrations carts and orders")
     # alembic.command.upgrade(config, "head")
 
 

@@ -6,7 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 __all__ = (
     "create_order_from_cart",
     "get_order_by_id",
-    "update_order"
+    "update_order",
+    "get_user_orders",
 )
 
 from api_models.orders import OrderToShow
@@ -54,4 +55,24 @@ async def get_order_by_id(order_id: int, session: AsyncSession) -> OrderToShow:
 
 
 async def update_order(order_id: int, update_data: dict, session: AsyncSession) -> OrderToShow:
-    pass
+    async with session.begin():
+        order_dal = OrderDAL(session)
+        order = await order_dal.update_order(order_id=order_id, update_data=update_data)
+        if not order:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail="Заказ не найден"
+            )
+    return OrderToShow.model_validate(order)
+
+
+async def get_user_orders(username: str, session: AsyncSession) -> list[OrderToShow]:
+    async with session.begin():
+        order_dal = OrderDAL(session)
+        orders = await order_dal.get_orders_by_username(username=username)
+        if not orders:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail="У пользователя нет заказов"
+            )
+    return [OrderToShow.model_validate(order) for order in orders]
