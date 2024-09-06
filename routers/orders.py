@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from api_models.orders import OrderToCreate, OrderToShow
 from database_interaction import get_db
 from global_constants import PaymentType
-from handlers.orders import create_order_from_cart, get_order_by_id, update_order
+from handlers.orders import create_order_from_cart, get_order_by_id, update_order, get_user_orders
 from payments.sber import SberPaymentsService
 
 orders_router = APIRouter()
@@ -30,3 +30,8 @@ async def create_order(order_data: OrderToCreate, session: AsyncSession = Depend
 @orders_router.post("/detail/{order_id}/")
 async def order_detail(order_id: int, session: AsyncSession = Depends(get_db)) -> OrderToShow:
     return await get_order_by_id(order_id, session)
+
+
+@orders_router.post("/show/{username}/")
+async def orders_show(username: str, session: AsyncSession = Depends(get_db)) -> list[OrderToShow]:
+    return await get_user_orders(username, session)
