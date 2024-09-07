@@ -18,6 +18,8 @@ async def create_order(order_data: OrderToCreate, session: AsyncSession = Depend
         street=order_data.street,
         house_number=order_data.house_number,
         apartment=order_data.apartment,
+        payment_type=order_data.payment_type,
+        delivery_type=order_data.delivery_type,
         session=session,
     )
     if order_data.payment_type == PaymentType.ONLINE:

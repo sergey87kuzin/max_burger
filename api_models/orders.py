@@ -9,7 +9,7 @@ __all__ = (
 
 from api_models.products import ProductToShow
 from common_api_model import TunedModel
-from global_constants import PaymentType
+from global_constants import PaymentType, DeliveryType
 
 
 class OrderToCreate(BaseModel):
@@ -19,6 +19,7 @@ class OrderToCreate(BaseModel):
     house_number: Optional[str] = None
     apartment: Optional[str] = None
     payment_type: PaymentType
+    delivery_type: DeliveryType
 
     @field_validator("payment_type", mode="before")
     def set_name(cls, value):
@@ -36,3 +37,12 @@ class OrderToShow(TunedModel):
     payment_url: Optional[str] = None
     payment_status: str
     products: list[OrderProductToShow]
+    total_price: float
+    delivery_price: Optional[int] = None
+    city: Optional[str] = None
+    street: Optional[str] = None
+    house_number: Optional[str] = None
+    apartment: Optional[str] = None
+    payment_type: PaymentType
+    delivery_type: Optional[str] = None
+    user_id: int

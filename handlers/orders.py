@@ -21,6 +21,8 @@ async def create_order_from_cart(
         street: str,
         house_number: str,
         apartment: str,
+        payment_type: str,
+        delivery_type: str,
         session: AsyncSession
 ) -> OrderToShow:
     async with session.begin():
@@ -37,6 +39,8 @@ async def create_order_from_cart(
             city=city,
             street=street,
             house_number=house_number,
+            payment_type=payment_type,
+            delivery_type=delivery_type,
             apartment=apartment
         )
     return await get_order_by_id(order.id, session=session)

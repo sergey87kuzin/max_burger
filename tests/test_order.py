@@ -1,9 +1,8 @@
 import json
 
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload, joinedload
-from db_models import Order, User, OrderItem
-from global_constants import PaymentType
+from db_models import Order
+from global_constants import PaymentType, DeliveryType
 from settings import TEST_PASSWORD
 
 
@@ -25,6 +24,7 @@ async def test_order_create(client, create_user_cart, async_session_test):
         "house_number": "some_house_number",
         "apartment": "123",
         "payment_type": PaymentType.CASH,
+        "delivery_type": DeliveryType.IN_REST,
     }
     response = client.post(
         '/api/orders/create/',
@@ -36,19 +36,8 @@ async def test_order_create(client, create_user_cart, async_session_test):
     assert response.status_code == 200
 
     async with async_session_test() as session:
-        query = (
-            select(Order)
-            .join_from(Order, User)
-            .options(
-                selectinload(Order.products)
-                .options(joinedload(OrderItem.product))
-            )
-            .options(
-                joinedload(Order.user)
-                .load_only(User.username)
-            )
-            .where(User.username == "cart_user@admin.ru")
-        )
-        orders = await session.execute(query)
-        orders = list(orders.scalars())
-    assert created_order in orders
+        query = select(Order).where(Order.id == created_order['order_id'])
+        order_from_db = await session.execute(query)
+        order_from_db = order_from_db.scalar()
+    for key, value in data_dict.items():
+        assert getattr(order_from_db, key) == value
