@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload, joinedload, load_only
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db_models import Cart, Order, OrderItem, User
-from global_constants import PaymentStatus
+from global_constants import PaymentStatus, PaymentType
 
 __all__ = (
     "OrderDAL",
@@ -26,6 +26,8 @@ class OrderDAL:
             city: str = None,
             street: str = None,
             house_number: str = None,
+            payment_type: str = None,
+            delivery_type: str = None,
             apartment: str = None
     ) -> Order:
         if city:
@@ -34,6 +36,8 @@ class OrderDAL:
         else:
             total_price = cart.total_price
             delivery_price = 0
+        if not payment_type:
+            payment_type = PaymentType.CASH
         new_order = Order(
             total_price=total_price,
             delivery_price=delivery_price,
@@ -43,6 +47,8 @@ class OrderDAL:
             city=city,
             street=street,
             house_number=house_number,
+            payment_type=payment_type,
+            delivery_type=delivery_type,
             apartment=apartment
         )
         self.db_session.add(new_order)
