@@ -5,7 +5,7 @@ from api_models.orders import OrderToCreate, OrderToShow
 from database_interaction import get_db
 from global_constants import PaymentType
 from handlers.orders import create_order_from_cart, get_order_by_id, update_order, get_user_orders
-from payments.sber import SberPaymentsService
+from payments.sber import SberPayment
 
 orders_router = APIRouter()
 
@@ -23,7 +23,7 @@ async def create_order(order_data: OrderToCreate, session: AsyncSession = Depend
         session=session,
     )
     if order_data.payment_type == PaymentType.ONLINE:
-        payment_url = SberPaymentsService(order).get_payment_url()
+        payment_url = SberPayment(order).get_payment_url()
         await update_order(order.id, {"payment_url": payment_url}, session=session)
         return {"payment_url": payment_url, "order_id": order.id}
     return {"payment_url": "", "order_id": order.id}
