@@ -1,18 +1,38 @@
 import json
 
+import pytest
 from sqlalchemy import select
+
 from db_models import Order
 from global_constants import PaymentType, DeliveryType
 from settings import TEST_PASSWORD
 
 
-async def test_order_create(client, create_user_cart, async_session_test):
-    cart = await create_user_cart(
-        category_name="cart_category",
-        product_name="cart product",
-        username="cart_user@admin.ru"
+@pytest.mark.parametrize(
+    "category_name,product_name,username,payment_type,delivery_type",
+    (
+        ("cart_category_1", "cart product_1", "cart_user_1@admin.ru", PaymentType.CASH, DeliveryType.IN_REST),
+        ("cart_category_2", "cart product_2", "cart_user_2@admin.ru", PaymentType.CASH, DeliveryType.COURIER),
+        ("cart_category_3", "cart product_3", "cart_user_3@admin.ru", PaymentType.CARD_COURIER, DeliveryType.IN_REST),
+        ("cart_category_4", "cart product_4", "cart_user_4@admin.ru", PaymentType.CARD_COURIER, DeliveryType.COURIER),
     )
-    access_data = {"username": "cart_user@admin.ru", "password": TEST_PASSWORD}
+)
+async def test_order_create(
+        category_name,
+        product_name,
+        username,
+        payment_type,
+        delivery_type,
+        client,
+        create_user_cart,
+        async_session_test
+):
+    cart = await create_user_cart(
+        category_name=category_name,
+        product_name=product_name,
+        username=username
+    )
+    access_data = {"username": username, "password": TEST_PASSWORD}
     tokens = client.post("api/users/token", data=access_data).json()
     token = tokens.get("access_token")
     headers = {"Authorization": f"Bearer {token}"}
@@ -23,8 +43,8 @@ async def test_order_create(client, create_user_cart, async_session_test):
         "street": "some_street",
         "house_number": "some_house_number",
         "apartment": "123",
-        "payment_type": PaymentType.CASH,
-        "delivery_type": DeliveryType.IN_REST,
+        "payment_type": payment_type,
+        "delivery_type": delivery_type,
     }
     response = client.post(
         '/api/orders/create/',

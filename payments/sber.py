@@ -19,7 +19,7 @@ from settings import SITE_DOMAIN, SBER_USERNAME, SBER_PASSWORD, ENVIRONMENT, CAL
     MERCHANT_LOGIN, LETTER_FOR_SBER_ORDER
 
 
-class SberPaymentsService:
+class SberPayment:
     """
     https://securepayments.sberbank.ru/wiki/doku.php/integration:api:rest:requests:register
     https://securepayments.sberbank.ru/wiki/doku.php/integration:api:rest:requests:register_cart
@@ -306,7 +306,7 @@ class SberPaymentsService:
             if not bool(order):
                 return RedirectResponse(fail_url + "?order_id={}".format(order_id))
 
-            payment_url = SberPaymentsService(order).get_payment_url()
+            payment_url = SberPayment(order).get_payment_url()
             if payment_url:
                 update_data = {
                     "payment_url": payment_url,
