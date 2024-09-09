@@ -205,6 +205,33 @@ async def create_user_cart(async_session_test):
     return create_user_cart_in_database
 
 
+@pytest.fixture
+async def create_product(async_session_test):
+    async def create_product_in_database(category_name: str, product_name: str):
+        async with async_session_test() as session:
+            new_category = Category(
+                name=category_name,
+                is_active=True,
+            )
+            session.add(new_category)
+            await session.flush()
+
+            new_product = Product(
+                name=product_name,
+                is_combo_product=False,
+                is_active=True,
+                price=100500,
+                category_id=new_category.id,
+                description="some description",
+                image="some_image.jpg",
+            )
+
+            session.add(new_product)
+            await session.commit()
+        return new_product
+    return create_product_in_database
+
+
 # def create_test_auth_headers_for_user(email: str) -> dict[str, str]:
 #     access_token = create_access_token(
 #         data={"sub": email},
