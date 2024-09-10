@@ -3,10 +3,11 @@ from fastapi_filter import FilterDepends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from admin import get_objects_list, CommonAdminDAL, get_object, update_object_by_id, delete_object_by_id, \
-    create_new_object, ProductFilter, UserFilter, CategoryFilter
+    create_new_object, ProductFilter, UserFilter, CategoryFilter, OrderFilter
 from api_models import UserToShow, UserToCreate, UserToUpdate, ProductToShow, ProductToUpdate, ProductToCreate, \
     CategoryToCreate, CategoryToShow, CategoryToUpdate
-from db_models import User, Product, Category
+from api_models.orders import OrderToShow
+from db_models import User, Product, Category, Order
 from handlers.auth import RoleChecker
 from pagination import PageParams
 
@@ -232,4 +233,20 @@ async def admin_delete_category(
         dal=CommonAdminDAL,
         object_id=category_id,
         session=session
+    )
+
+
+@admin_router.get("/orders/list/")
+async def admin_list_order(
+        order_filter: OrderFilter = FilterDepends(OrderFilter),
+        page_params: PageParams = Depends(),
+        session: AsyncSession = Depends(RoleChecker(allowed_roles=["staff", "admin"]))
+):
+    return await get_objects_list(
+        model=Order,
+        dal=CommonAdminDAL,
+        response_model=OrderToShow,
+        session=session,
+        page_params=page_params,
+        custom_filter=order_filter
     )
