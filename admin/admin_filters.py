@@ -2,12 +2,13 @@ from typing import Optional
 
 from fastapi_filter.contrib.sqlalchemy import Filter
 
-from db_models import Product, Category, User
+from db_models import Product, Category, User, Order
 
 __all__ = (
     "ProductFilter",
     "CategoryFilter",
     "UserFilter",
+    "OrderFilter",
 )
 
 
@@ -47,3 +48,12 @@ class UserFilter(Filter):
         ordering_field_name = "custom_order_by"
         search_field_name = "custom_search"
         search_model_fields = ["username", "first_name", "last_name", "phone"]
+
+
+class OrderFilter(Filter):
+    user_id: Optional[int] = None
+    delivery_type: Optional[str] = None
+    payment_type: Optional[str] = None
+
+    class Constants(Filter.Constants):
+        model = Order
