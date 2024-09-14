@@ -1,5 +1,6 @@
 from datetime import timedelta
 from http import HTTPStatus
+import random
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -164,3 +165,8 @@ async def refresh_access_token(
     )
     await update_refresh_token(token, refresh_token, session)
     return Token(access_token=access_token, refresh_token=refresh_token)
+
+
+@user_router.get("/random/")
+async def random_result(number: int):
+    return random.randint(1, number)

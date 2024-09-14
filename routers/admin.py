@@ -250,3 +250,17 @@ async def admin_list_order(
         page_params=page_params,
         custom_filter=order_filter
     )
+
+
+@admin_router.get("/orders/{order_id}/")
+async def admin_get_order(
+        order_id: int,
+        session: AsyncSession = Depends(RoleChecker(allowed_roles=["staff", "admin"]))
+):
+    return await get_object(
+        model=Order,
+        dal=CommonAdminDAL,
+        response_model=OrderToShow,
+        object_id=order_id,
+        session=session
+    )
