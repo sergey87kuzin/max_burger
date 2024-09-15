@@ -5,6 +5,7 @@ from sqlalchemy import select
 
 from db_models import Order
 from global_constants import PaymentType, DeliveryType
+from handlers.orders import get_user_orders
 from settings import TEST_PASSWORD
 
 
@@ -61,3 +62,6 @@ async def test_order_create(
         order_from_db = order_from_db.scalar()
     for key, value in data_dict.items():
         assert getattr(order_from_db, key) == value
+
+    orders = await get_user_orders(username, async_session_test())
+    assert len(orders) == 1
