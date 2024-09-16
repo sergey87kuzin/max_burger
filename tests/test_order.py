@@ -65,3 +65,5 @@ async def test_order_create(
 
     orders = await get_user_orders(username, async_session_test())
     assert len(orders) == 1
+
+    assert orders[0].products[0].product.name == product_name
