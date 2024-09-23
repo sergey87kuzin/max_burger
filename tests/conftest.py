@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any
+from typing import Any, AsyncGenerator
 from typing import Generator
 
 import alembic.config
@@ -9,10 +9,11 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool, NullPool
 from starlette.testclient import TestClient
 
-from database_interaction import get_db
-from db_models import Category, User, Product, Cart, CartItem
+from database_interaction import get_db, metadata
+from db_models import Category, User, Product, Cart, CartItem, Base
 from global_constants import PaymentStatus
 from hashing import Hasher
 from main import app
@@ -29,9 +30,28 @@ CLEAN_TABLES = [
 ]
 
 
+engine_test = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool)
+async_session_maker = sessionmaker(engine_test, class_=AsyncSession, expire_on_commit=False)
+metadata.bind = engine_test
+
+
+async def _get_test_db() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        yield session
+
+
+@pytest.fixture(autouse=True, scope='session')
+async def prepare_database():
+    async with engine_test.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    async with engine_test.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+
 @pytest.fixture(scope="session")
 def event_loop():
-    loop = asyncio.get_event_loop_policy().new_event_loop()
+    loop = asyncio.get_event_loop()
     yield loop
     loop.close()
 
@@ -45,9 +65,7 @@ def event_loop():
 
 @pytest.fixture(scope="session")
 async def async_session_test():
-    engine = create_async_engine(TEST_DATABASE_URL, future=True, echo=True)
-    async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-    yield async_session
+    yield async_session_maker
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -57,22 +75,6 @@ async def clean_tables(async_session_test):
         async with session.begin():
             for table_for_cleaning in CLEAN_TABLES:
                 await session.execute(text(f"TRUNCATE TABLE {table_for_cleaning} CASCADE;"))
-
-
-async def _get_test_db():
-    try:
-        # create async engine for interaction with database
-        test_engine = create_async_engine(
-            TEST_DATABASE_URL, future=True, echo=True
-        )
-
-        # create session for the interaction with database
-        test_async_session = sessionmaker(
-            test_engine, expire_on_commit=False, class_=AsyncSession
-        )
-        yield test_async_session()
-    finally:
-        pass
 
 
 @pytest.fixture(scope="function")
@@ -85,15 +87,6 @@ async def client() -> Generator[TestClient, Any, None]:
     app.dependency_overrides[get_db] = _get_test_db
     with TestClient(app) as client:
         yield client
-
-
-@pytest.fixture(scope="session")
-async def asyncpg_pool():
-    pool = await asyncpg.create_pool(
-        "".join(TEST_DATABASE_URL.split("+asyncpg"))
-    )
-    yield pool
-    pool.close()
 
 
 @pytest.fixture
