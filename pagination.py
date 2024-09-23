@@ -1,6 +1,5 @@
 from typing import Generic, List, TypeVar
 from pydantic import BaseModel, conint
-from sqlalchemy import select
 
 
 class PageParams(BaseModel):
